@@ -12,7 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       buffer: 'buffer',
-      process: 'process/browser',
+      process: 'process/browser.js',
       stream: 'stream-browserify',
     },
   },
