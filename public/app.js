@@ -1,6 +1,6 @@
 // P2P File Share - WebRTC Client
 // Configuration - update this with your Deno Deploy URL
-const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.dev';
+const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const STUN_SERVER = 'stun:stun.l.google.com:19302';
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
 
