@@ -1,166 +1,110 @@
-# P2P File Share MVP — Updated Plan (GitHub Pages + Deno Deploy)
+# xfer - a Secure File Transfer Prototype
 
-## overview
-a lightweight p2p file sharing app built with webRTC.
-the app lets a user select a file and send a share link to a friend.
-the link connects the two browsers directly for file transfer — no file data ever touches a server.
+## Goal
+Create a minimal, reliable, and secure browser-based peer-to-peer file transfer prototype using **secure-file-transfer** (Jeremy Kahn). Deliverables: a working demo (send/receive UI), README, and an automated test checklist.
 
-frontend is hosted on **github pages** (static),
-and a tiny **signaling relay** (no file data) is hosted on **deno deploy** from the same repo.
+## Assumptions
+- Both peers use modern browsers (Chrome, Firefox, Edge, Safari recent versions).
+- You prefer to avoid running your own STUN/TURN servers. We'll rely on the library's default discovery/relay arrangements and public trackers where necessary.
+- Files will be single-file transfers (no multi-user swarm initially).
 
----
+## Milestones (1–2 day targets each)
 
-## goals
-- simple, privacy-focused file transfer
-- one-click deployment: github pages + deno deploy
-- fully client-side file handling
-- minimal server (signaling only, no storage or logging)
-- clean and responsive UI
+### Milestone 1 — Environment & research (1 day)
+- Read the secure-file-transfer README and inspect the repo.
+- Clone repo locally.
+- Identify any external dependencies (trackers, bootstrap servers) the lib uses.
+- Create a tiny test matrix describing networks to trial (same LAN, different Wi‑Fi, mobile data).
 
----
+### Milestone 2 — Minimal demo (1–2 days)
+- Build a minimal static page (`index.html`) with:
+  - File input for sender
+  - A text area to display or paste a transfer link / code for receiver
+  - A progress bar and simple logs
+- Integrate the secure-file-transfer library via npm or direct bundle (follow repo quickstart).
+- Implement a ‘Send’ flow and a ‘Receive’ flow.
 
-## architecture overview
-### frontend (github pages)
-- serves static assets: `index.html`, `style.css`, `app.js`
-- handles:
-  - file selection
-  - webRTC setup (STUN + signaling connection)
-  - UI and progress updates
-  - file sending/receiving over RTCDataChannel
+### Milestone 3 — Testing & diagnostics (1–2 days)
+- Test transfers across the test matrix.
+- Log connection types and failure modes (failed to connect, stalls, partial transfers).
+- Verify encryption: confirm only recipient who has key can decrypt.
+- Add automatic retries and chunked transfer logging.
 
-### backend (deno deploy)
-- minimal websocket relay service for signaling
-- forwards SDP offers/answers and ICE candidates between peers
-- ephemeral: no data stored, no logs
+### Milestone 4 — UX polish & resilience (1–2 days)
+- Add UI to show transfer key/passphrase and copy-to-clipboard.
+- Add resume support if library supports it, or show clear progress + cancel.
+- Add clear error messages (NAT blocked, peer unreachable).
 
-### network components
-- **STUN**: `stun:stun.l.google.com:19302` (public)
-- **Signaling**: custom websocket relay on Deno Deploy
-- **Data transfer**: direct browser-to-browser via RTCDataChannel
+### Milestone 5 — Deployment & README (1 day)
+- Package as static site deployable to GitHub Pages.
+- Write README with testing notes, known limitations, and privacy/security notes.
 
----
+## Quickstart (developer steps)
+1. Install Node.js (v16+) and npm.
+2. Clone the repo:
 
-## connection flow
-1. **sender opens app**
-   - chooses file → app generates UUID session ID
-   - creates a share link (`/share/<uuid>`)
-   - opens WebSocket connection to signaling server
-   - creates WebRTC offer and sends to server with the session ID
-
-2. **receiver opens link**
-   - connects to same signaling server with session ID
-   - receives offer → creates answer → sends it back
-   - signaling server relays messages between the two
-
-3. **p2p connection established**
-   - both browsers connect directly (via STUN-assisted NAT traversal)
-   - file transferred via RTCDataChannel in chunks
-
-4. **after transfer**
-   - peers disconnect
-   - signaling session closed
-   - no persistent data remains anywhere
-
----
-
-## repository layout
-```
-p2p-share/
-│
-├── public/                     # frontend (github pages)
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-│
-├── deno/                       # backend (deno deploy)
-│   └── server.js
-│
-├── .github/
-│   └── workflows/
-│       ├── deploy-pages.yml    # builds + deploys frontend to github pages
-│       └── deploy-deno.yml     # deploys websocket relay to deno deploy
-│
-├── package.json                # optional tooling
-└── README.md
+```bash
+git clone https://github.com/jeremyckahn/secure-file-transfer.git
+cd secure-file-transfer
+npm install
 ```
 
----
+3. Start a dev server (or use `serve` for static):
 
-## signaling server (deno/server.js)
-```js
-// deno deploy-compatible signaling relay
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-
-const peers = new Map(); // session_id -> Set of WebSockets
-
-serve((req) => {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-
-  const { socket, response } = Deno.upgradeWebSocket(req);
-  if (!id) return new Response("missing id", { status: 400 });
-
-  socket.onopen = () => {
-    if (!peers.has(id)) peers.set(id, new Set());
-    peers.get(id).add(socket);
-  };
-
-  socket.onmessage = (e) => {
-    for (const peer of peers.get(id) ?? [])
-      if (peer !== socket) peer.send(e.data);
-  };
-
-  socket.onclose = () => {
-    peers.get(id)?.delete(socket);
-    if (peers.get(id)?.size === 0) peers.delete(id);
-  };
-
-  return response;
-});
+```bash
+npm run dev
+# or
+npx serve .
 ```
 
-this service:
-- accepts websocket connections with `?id=<session>`
-- relays all messages between sockets with the same id
-- never stores any data after both peers disconnect
+4. Open `index.html` in two different browsers/devices and try sending a file.
+
+## Example skeleton (index.html + JS)
+- Create a single-page UI with `file` input + `send` button and a `paste code` field for receiver.
+- Use the library's API to create sender and generate a short transfer code or link.
+- On receiver, paste the code / link and call the receive API to accept the file.
+
+(Specific code snippets belong in the repo README — implement once you’ve confirmed package imports and API surface from the repo.)
+
+## Testing checklist
+- [ ] Send 5MB file across same LAN (success)
+- [ ] Send 50MB file across two different networks (Wi‑Fi -> mobile) (success/fail recorded)
+- [ ] Transfer between Chrome and Firefox (success)
+- [ ] Confirm file integrity via checksum (sha256)
+- [ ] Confirm encryption key required to decrypt
+- [ ] Try edge cases: cancel mid-send, resume (if supported), simultaneous transfers
+
+## Diagnostics & troubleshooting
+- If transfers fail repeatedly between networks, note NAT type and try:
+  - Use different network (cellular hotspot)
+  - Use a public STUN server (for tests) — e.g. Google STUN (`stun:stun.l.google.com:19302`) to see if it helps
+- Capture browser console logs and copy WebRTC stats (if accessible) to help debug.
+
+## Security & privacy notes
+- Always treat the generated transfer token/key as sensitive; if the link contains the decryption key, warn users.
+- Prefer explicit out-of-band key exchange (e.g., send passphrase separately) for high-sensitivity files.
+- Do not store unencrypted files on any server.
+
+## Deployment notes
+- GitHub Pages is sufficient: this is a static single-page app.
+- If you later need better reliability, add a small signalling server (WebSocket) and optionally a TURN server.
+- For production, consider using a paid TURN provider or self-hosting coturn if reliability across restrictive NATs is required.
+
+## Next steps (after MVP)
+1. Add resumable transfers and large-file streaming.
+2. Add optional cloud relay fallback (user opt-in) for reliability.
+3. Add code signing and packaged releases (Electron) for native apps.
+4. Add end-to-end encrypted metadata and UX for secure key exchange.
 
 ---
 
-## github pages deployment
-- enable github pages → serve from `/public`
-- optional: add GitHub Action for automatic deployment
+### Files to include in repo
+- `index.html` — demo UI
+- `app.js` — integration code with secure-file-transfer
+- `README.md` — instructions and testing notes
+- `LICENSE` — pick appropriate license
+- `.github/workflows/ci.yml` — optional: run basic tests on push
 
 ---
 
-## deno deploy deployment
-- connect repo to deno deploy dashboard
-- set entrypoint: `deno/server.js`
-- auto-deploy on push to `main`
-
----
-
-## mvp checklist
-- [ ] webRTC setup with google STUN server
-- [ ] deno websocket signaling relay working
-- [ ] frontend can generate + share uuid links
-- [ ] successful file transfer between peers
-- [ ] simple ui and progress indicator
-- [ ] deploy workflows to github + deno
-
----
-
-## optional v2 ideas
-- multiple file transfers
-- qr code for link sharing
-- encrypted connections (e2e key exchange)
-- drag-and-drop upload
-- nicer connection animations
-
----
-
-## summary
-this configuration gives:
-- full github pages hosting for static assets
-- deno deploy for signaling relay
-- no file storage, logs, or personal data
-- a fast, serverless-style p2p experience.
+Good luck — once you confirm, I can generate a ready-to-download `plan.md` file packaged for you to download (Markdown file).
