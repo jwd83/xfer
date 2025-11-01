@@ -1,8 +1,12 @@
 // P2P File Share - WebRTC Client
+// Version: 2025-11-01-v1
 // Configuration - update this with your Deno Deploy URL
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const STUN_SERVER = 'stun:stun.l.google.com:19302';
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
+
+console.log('P2P File Share - Version: 2025-11-01-v1');
+console.log('Signaling Server:', SIGNALING_SERVER);
 
 // State
 let peerConnection = null;
@@ -49,6 +53,7 @@ function init() {
 
     if (sessionId) {
         // Receiver mode
+        console.log('🔵 RECEIVER MODE - Session ID:', sessionId);
         isSender = false;
         sendMode.classList.add('hidden');
         receiveMode.classList.remove('hidden');
@@ -57,6 +62,7 @@ function init() {
         // Sender mode
         isSender = true;
         sessionId = generateSessionId();
+        console.log('🟢 SENDER MODE - Session ID:', sessionId);
         setupSenderUI();
     }
 }
@@ -136,10 +142,11 @@ async function initReceiver() {
 function connectSignaling() {
     return new Promise((resolve, reject) => {
         const wsUrl = `${SIGNALING_SERVER}?id=${sessionId}`;
+        console.log('Connecting to:', wsUrl);
         signalingSocket = new WebSocket(wsUrl);
 
         signalingSocket.onopen = () => {
-            console.log('Connected to signaling server');
+            console.log('✓ Connected to signaling server with session:', sessionId);
             resolve();
         };
 
