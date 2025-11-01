@@ -13,6 +13,7 @@ export default defineConfig({
     alias: {
       buffer: 'buffer',
       stream: 'stream-browserify',
+      util: 'util',
     },
   },
   build: {
