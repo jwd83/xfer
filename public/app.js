@@ -1,6 +1,7 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v8
+// Version: 2025-11-01-v9
 // Configuration - update this with your Deno Deploy URL
+const VERSION = '2025-11-01-v9';
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const ICE_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -52,18 +53,22 @@ const retryBtn = document.getElementById('retry-btn');
 
 // Initialize
 function init() {
+    console.log('🚀 P2P File Share -', VERSION);
+    
     // Check if we're receiving a file (has session ID in URL)
     const urlParams = new URLSearchParams(window.location.search);
     sessionId = urlParams.get('id');
 
     if (sessionId) {
         // Receiver mode
+        console.log('📥 RECEIVER MODE');
         isSender = false;
         sendMode.classList.add('hidden');
         receiveMode.classList.remove('hidden');
         initReceiver();
     } else {
         // Sender mode
+        console.log('📤 SENDER MODE');
         isSender = true;
         sessionId = generateSessionId();
         setupSenderUI();
@@ -149,6 +154,7 @@ function connectSignaling() {
 
         signalingSocket.onmessage = async (event) => {
             const message = JSON.parse(event.data);
+            console.log('⬇️ Received signaling:', message.type);
             await handleSignalingMessage(message);
         };
 
@@ -164,7 +170,10 @@ function connectSignaling() {
 // Send signaling message
 function sendSignalingMessage(message) {
     if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
+        console.log('⬆️ Sending signaling:', message.type);
         signalingSocket.send(JSON.stringify(message));
+    } else {
+        console.error('❌ Cannot send', message.type, '- socket not open');
     }
 }
 
