@@ -8,4 +8,4 @@ EXPOSE 3478/tcp
 EXPOSE 3478/udp
 EXPOSE 49152-65535/udp
 
-CMD ["-c", "/etc/coturn/turnserver.conf"]
+CMD ["turnserver", "-c", "/etc/coturn/turnserver.conf"]
