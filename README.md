@@ -11,6 +11,17 @@ A lightweight, privacy-focused peer-to-peer file sharing application built with 
 - **Real-time Progress**: See transfer progress with a clean UI
 - **No Installation**: Works entirely in the browser
 
+## ⚠️ Network Limitations
+
+**Currently works on:**
+- ✅ Same local network (WiFi/LAN)
+- ✅ Some permissive NAT configurations
+
+**Does not work across:**
+- ❌ Different networks with restrictive NATs/firewalls
+
+**To enable cross-network transfers**, you need to set up a TURN server. See `TURN_SETUP.md` for instructions.
+
 ## 🏗️ Architecture
 
 ### Frontend (GitHub Pages)

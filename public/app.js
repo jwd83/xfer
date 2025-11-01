@@ -1,20 +1,13 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v7
+// Version: 2025-11-01-v8
 // Configuration - update this with your Deno Deploy URL
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const ICE_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    {
-        urls: [
-            'turn:a.relay.metered.ca:80',
-            'turn:a.relay.metered.ca:80?transport=tcp',
-            'turn:a.relay.metered.ca:443',
-            'turn:a.relay.metered.ca:443?transport=tcp'
-        ],
-        username: 'e61c97e3d78df855d5d0c703',
-        credential: 'hZLLe2BUh9S7d/FP'
-    }
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' }
 ];
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
 
@@ -29,6 +22,7 @@ let isSender = false;
 let receivedChunks = [];
 let receivedSize = 0;
 let totalSize = 0;
+let iceCandidateQueue = [];
 
 // DOM Elements
 const fileInput = document.getElementById('file-input');
@@ -202,7 +196,11 @@ async function handlePeerJoined() {
 // Setup WebRTC peer connection
 async function setupPeerConnection(createOffer) {
     peerConnection = new RTCPeerConnection({
-        iceServers: ICE_SERVERS
+        iceServers: ICE_SERVERS,
+        iceTransportPolicy: 'all',
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
     });
 
     // ICE candidate handling
@@ -314,8 +312,18 @@ async function handleAnswer(answer) {
 // Handle ICE candidate
 async function handleIceCandidate(candidate) {
     try {
-        if (peerConnection && peerConnection.remoteDescription) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        if (peerConnection) {
+            if (peerConnection.remoteDescription) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                // Process queued candidates
+                while (iceCandidateQueue.length > 0) {
+                    const queuedCandidate = iceCandidateQueue.shift();
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(queuedCandidate));
+                }
+            } else {
+                // Queue candidate until remote description is set
+                iceCandidateQueue.push(candidate);
+            }
         }
     } catch (err) {
         console.error('Error adding ICE candidate:', err);
