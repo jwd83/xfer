@@ -1,14 +1,19 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v9
+// Version: 2025-11-01-v10
 // Configuration - update this with your Deno Deploy URL
-const VERSION = '2025-11-01-v9';
+const VERSION = '2025-11-01-v10';
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const ICE_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' }
+    {
+        urls: [
+            'turn:213.188.194.147:3478?transport=udp',
+            'turn:213.188.194.147:3478?transport=tcp'
+        ],
+        username: 'user',
+        credential: 'avk281l75s2jdvl039403v93'
+    }
 ];
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
 
