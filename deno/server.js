@@ -30,14 +30,19 @@ Deno.serve((req) => {
     };
 
     socket.onmessage = (e) => {
+      console.log(`Message in session ${id}:`, e.data);
       // Relay message to all other peers in the same session
       const sessionPeers = peers.get(id);
+      console.log(`Session has ${sessionPeers?.size || 0} peers`);
       if (sessionPeers) {
+        let relayed = 0;
         for (const peer of sessionPeers) {
           if (peer !== socket && peer.readyState === WebSocket.OPEN) {
             peer.send(e.data);
+            relayed++;
           }
         }
+        console.log(`Relayed to ${relayed} peer(s)`);
       }
     };
 

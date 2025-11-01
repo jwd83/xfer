@@ -111,9 +111,13 @@ function copyShareLink() {
 // Initialize sender
 async function initSender() {
     try {
+        console.log('initSender: starting');
         await connectSignaling();
+        console.log('initSender: signaling connected');
         await setupPeerConnection(true);
+        console.log('initSender: peer connection setup complete');
     } catch (err) {
+        console.error('initSender error:', err);
         showError(`Failed to initialize: ${err.message}`);
     }
 }
@@ -156,8 +160,12 @@ function connectSignaling() {
 
 // Send signaling message
 function sendSignalingMessage(message) {
+    console.log('Sending signaling message:', message.type);
     if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
         signalingSocket.send(JSON.stringify(message));
+        console.log('Message sent successfully');
+    } else {
+        console.error('Cannot send message - WebSocket not open. State:', signalingSocket?.readyState);
     }
 }
 
@@ -206,11 +214,14 @@ async function setupPeerConnection(createOffer) {
 
     if (createOffer) {
         // Sender creates data channel
+        console.log('Creating data channel...');
         dataChannel = peerConnection.createDataChannel('fileTransfer');
         setupDataChannel();
 
+        console.log('Creating offer...');
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
+        console.log('Offer created, sending to peer...');
         sendSignalingMessage({ type: 'offer', offer });
     } else {
         // Receiver waits for data channel

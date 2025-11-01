@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signaling Test</title>
+</head>
+<body>
+    <h1>WebSocket Signaling Test</h1>
+    <button onclick="testSender()">Test as Sender</button>
+    <button onclick="testReceiver()">Test as Receiver</button>
+    <pre id="log"></pre>
+
+    <script>
+        const sessionId = 'test-session-123';
+        const server = 'wss://xfer.jwd83.deno.net';
+        let ws;
+
+        function log(msg) {
+            document.getElementById('log').textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        function testSender() {
+            log('\n=== TESTING AS SENDER ===');
+            ws = new WebSocket(`${server}?id=${sessionId}`);
+            
+            ws.onopen = () => {
+                log('✓ WebSocket connected');
+                log('Sending test offer...');
+                ws.send(JSON.stringify({
+                    type: 'offer',
+                    offer: { sdp: 'test-sdp', type: 'offer' }
+                }));
+            };
+
+            ws.onmessage = (e) => {
+                log('✓ Received message: ' + e.data);
+            };
+
+            ws.onerror = (e) => {
+                log('✗ Error: ' + e);
+            };
+
+            ws.onclose = () => {
+                log('WebSocket closed');
+            };
+        }
+
+        function testReceiver() {
+            log('\n=== TESTING AS RECEIVER ===');
+            ws = new WebSocket(`${server}?id=${sessionId}`);
+            
+            ws.onopen = () => {
+                log('✓ WebSocket connected');
+                log('Waiting for offer...');
+            };
+
+            ws.onmessage = (e) => {
+                log('✓ Received message: ' + e.data);
+                const msg = JSON.parse(e.data);
+                if (msg.type === 'offer') {
+                    log('Got offer! Sending answer...');
+                    ws.send(JSON.stringify({
+                        type: 'answer',
+                        answer: { sdp: 'test-answer-sdp', type: 'answer' }
+                    }));
+                }
+            };
+
+            ws.onerror = (e) => {
+                log('✗ Error: ' + e);
+            };
+
+            ws.onclose = () => {
+                log('WebSocket closed');
+            };
+        }
+    </script>
+</body>
+</html>
