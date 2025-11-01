@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xfer - P2P File Transfer</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>xfer</h1>
+            <p class="subtitle">Secure peer-to-peer file transfer</p>
+        </header>
+
+        <!-- Sender Mode -->
+        <div id="sender-mode" class="mode">
+            <div class="instructions">
+                <h2>Send a File</h2>
+                <p>Select a file from your computer to generate a secure transfer link.</p>
+            </div>
+            
+            <div class="file-input-container">
+                <input type="file" id="file-input" />
+                <label for="file-input" class="file-label">Choose File</label>
+                <span id="file-name" class="file-name"></span>
+            </div>
+
+            <div id="link-container" class="link-container hidden">
+                <p class="success-message">Link generated! Share this with the recipient:</p>
+                <div class="link-box">
+                    <input type="text" id="transfer-link" readonly />
+                    <button id="copy-button">Copy</button>
+                </div>
+                <p class="status-message">Keep this page open until the transfer is complete.</p>
+            </div>
+
+            <div id="sender-status" class="status-box hidden"></div>
+        </div>
+
+        <!-- Receiver Mode -->
+        <div id="receiver-mode" class="mode hidden">
+            <div class="instructions">
+                <h2>Receive a File</h2>
+                <p>Connecting to sender...</p>
+            </div>
+
+            <div id="receiver-status" class="status-box"></div>
+
+            <div id="download-container" class="download-container hidden">
+                <button id="download-button" class="download-btn">Download File</button>
+            </div>
+        </div>
+
+        <!-- Debug Console -->
+        <div class="debug-console">
+            <div class="debug-header">
+                <h3>Debug Console</h3>
+                <button id="clear-logs">Clear</button>
+            </div>
+            <div id="debug-logs" class="debug-logs"></div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
