@@ -34,8 +34,8 @@ document.getElementById('clear-logs').addEventListener('click', () => {
 
 // Determine mode based on URL parameters
 const urlParams = new URLSearchParams(window.location.search);
-const magnetUri = urlParams.get('magnet');
-const isReceiverMode = !!magnetUri;
+const transferData = urlParams.get('x');
+const isReceiverMode = !!transferData;
 
 logger.info(`Application initialized in ${isReceiverMode ? 'RECEIVER' : 'SENDER'} mode`);
 
@@ -94,17 +94,28 @@ function initSenderMode() {
             const magnetUri = await fileTransfer.offer([file], password);
             logger.success('Magnet URI created successfully');
             
-            // Encode magnetUri and password in URL
-            const encodedMagnet = encodeURIComponent(magnetUri);
-            const encodedPassword = encodeURIComponent(password);
-            const link = `${window.location.origin}${window.location.pathname}?magnet=${encodedMagnet}&key=${encodedPassword}`;
+            // Encode magnetUri and password together in base64
+            const transferData = JSON.stringify({ magnet: magnetUri, key: password });
+            const encoded = btoa(transferData);
+            logger.info(`Encoded transfer data (${encoded.length} chars)`);
+            
+            const link = `${window.location.origin}${window.location.pathname}?x=${encoded}`;
             
             transferLink.value = link;
             linkContainer.classList.remove('hidden');
             
             logger.success('Transfer link generated successfully');
             logger.info('Waiting for receiver to connect...');
+            logger.warning('Keep this page open until transfer completes');
             statusBox.textContent = 'Waiting for receiver to connect...';
+            
+            // Monitor connection (note: secure-file-transfer doesn't expose events)
+            // We'll log periodically
+            let waitTime = 0;
+            const connectionCheckInterval = setInterval(() => {
+                waitTime += 5;
+                logger.info(`Still waiting for receiver... (${waitTime}s)`);
+            }, 5000);
             
             // Note: fileTransfer.offer() doesn't provide progress callbacks
             // The transfer happens when receiver calls download()
@@ -134,19 +145,23 @@ function initReceiverMode() {
     document.getElementById('sender-mode').classList.add('hidden');
     document.getElementById('receiver-mode').classList.remove('hidden');
     
-    // Parse magnet URI and password from URL
-    const magnetUri = decodeURIComponent(urlParams.get('magnet') || '');
-    const password = decodeURIComponent(urlParams.get('key') || '');
-    
     logger.info('Receiver mode initialized');
-    logger.info(`Magnet URI: ${magnetUri.substring(0, 50)}...`);
     
     const statusBox = document.getElementById('receiver-status');
     const downloadContainer = document.getElementById('download-container');
     const downloadButton = document.getElementById('download-button');
     
-    if (!magnetUri || !password) {
-        logger.error('Missing magnet URI or encryption key in URL');
+    // Decode transfer data from URL
+    let magnetUri, password;
+    try {
+        const decoded = atob(transferData);
+        const data = JSON.parse(decoded);
+        magnetUri = data.magnet;
+        password = data.key;
+        logger.info('Transfer data decoded successfully');
+        logger.info(`Magnet URI: ${magnetUri.substring(0, 50)}...`);
+    } catch (error) {
+        logger.error('Failed to decode transfer data');
         statusBox.textContent = 'Error: Invalid transfer link';
         return;
     }
