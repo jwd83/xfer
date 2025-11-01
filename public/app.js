@@ -122,7 +122,7 @@ async function initSender() {
 async function initReceiver() {
     try {
         await connectSignaling();
-        await setupPeerConnection(false);
+        // Receiver waits for offer before setting up peer connection
     } catch (err) {
         showError(`Failed to connect: ${err.message}`);
     }
@@ -163,6 +163,8 @@ function sendSignalingMessage(message) {
 
 // Handle signaling messages
 async function handleSignalingMessage(message) {
+    console.log('Received signaling message:', message.type);
+    
     switch (message.type) {
         case 'offer':
             await handleOffer(message.offer);
@@ -267,6 +269,11 @@ function setupDataChannel() {
 
 // Handle offer (receiver)
 async function handleOffer(offer) {
+    // Create peer connection if it doesn't exist (receiver)
+    if (!peerConnection) {
+        await setupPeerConnection(false);
+    }
+    
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
@@ -281,7 +288,11 @@ async function handleAnswer(answer) {
 // Handle ICE candidate
 async function handleIceCandidate(candidate) {
     try {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        if (peerConnection && peerConnection.remoteDescription) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+            console.log('Waiting for remote description before adding ICE candidate');
+        }
     } catch (err) {
         console.error('Error adding ICE candidate:', err);
     }
