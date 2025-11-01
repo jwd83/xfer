@@ -1,5 +1,6 @@
-make a simple webpage where a visitor can select a file from their computer
-and then create a link to p2p transfer the file to another person using the page.
+the goal here is to make a simple webpage where a visitor can select a file
+from their computer and then create a link to p2p transfer the file to
+another person using the page.
 
 the page will have two modes:
 
@@ -16,7 +17,7 @@ under the hood the page will use the library
 
 https://github.com/jeremyckahn/secure-file-transfer
 
-to handle the p2p file transfer.
+to handle the p2p file transfer to the best of it's ability even if it is unreliable.
 
 in both modes the page will provide simple instructions and a clean
 user interface to guide the visitor through the process.
