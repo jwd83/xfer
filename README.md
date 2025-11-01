@@ -132,10 +132,10 @@ Update `public/app.js` to point to your Deno Deploy URL:
 
 ```javascript
 // Line 3 in public/app.js
-const SIGNALING_SERVER = 'wss://your-project-name.deno.dev';
+const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.dev';
 ```
 
-Replace `your-project-name` with your actual Deno Deploy project name.
+Replace with your actual Deno Deploy project URL.
 
 **Important**: Use `wss://` (not `https://`) for WebSocket connections.
 
@@ -284,7 +284,7 @@ p2p-share/
 
 Edit `public/app.js` line 3:
 ```javascript
-const SIGNALING_SERVER = 'wss://your-project-name.deno.dev';
+const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.dev';
 ```
 
 ### Adjust Chunk Size
