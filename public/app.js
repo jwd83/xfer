@@ -1,12 +1,10 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v3
+// Version: 2025-11-01-v4
 // Configuration - update this with your Deno Deploy URL
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const STUN_SERVER = 'stun:stun.l.google.com:19302';
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
 
-console.log('P2P File Share - Version: 2025-11-01-v3');
-console.log('Signaling Server:', SIGNALING_SERVER);
 
 // State
 let peerConnection = null;
@@ -53,7 +51,6 @@ function init() {
 
     if (sessionId) {
         // Receiver mode
-        console.log('🔵 RECEIVER MODE - Session ID:', sessionId);
         isSender = false;
         sendMode.classList.add('hidden');
         receiveMode.classList.remove('hidden');
@@ -62,7 +59,6 @@ function init() {
         // Sender mode
         isSender = true;
         sessionId = generateSessionId();
-        console.log('🟢 SENDER MODE - Session ID:', sessionId);
         setupSenderUI();
     }
 }
@@ -117,12 +113,9 @@ function copyShareLink() {
 // Initialize sender
 async function initSender() {
     try {
-        console.log('initSender: starting');
         await connectSignaling();
-        console.log('initSender: signaling connected, waiting for receiver...');
-        // Don't create peer connection yet - wait for peer-joined event
+        // Wait for peer-joined event before creating connection
     } catch (err) {
-        console.error('initSender error:', err);
         showError(`Failed to initialize: ${err.message}`);
     }
 }
@@ -141,50 +134,35 @@ async function initReceiver() {
 function connectSignaling() {
     return new Promise((resolve, reject) => {
         const wsUrl = `${SIGNALING_SERVER}?id=${sessionId}`;
-        console.log('Connecting to:', wsUrl);
         signalingSocket = new WebSocket(wsUrl);
 
         signalingSocket.onopen = () => {
-            console.log('✓ Connected to signaling server with session:', sessionId);
             resolve();
         };
 
         signalingSocket.onmessage = async (event) => {
-            console.log('📨 RAW WebSocket message received:', event.data);
-            try {
-                const message = JSON.parse(event.data);
-                console.log('📨 PARSED message:', message);
-                await handleSignalingMessage(message);
-            } catch (err) {
-                console.error('❌ Failed to parse message:', err, 'Raw data:', event.data);
-            }
+            const message = JSON.parse(event.data);
+            await handleSignalingMessage(message);
         };
 
         signalingSocket.onerror = (err) => {
             reject(new Error('Signaling connection failed'));
         };
 
-        signalingSocket.onclose = () => {
-            console.log('Signaling connection closed');
-        };
+        signalingSocket.onclose = () => {};
+        
     });
 }
 
 // Send signaling message
 function sendSignalingMessage(message) {
-    console.log('Sending signaling message:', message.type);
     if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
         signalingSocket.send(JSON.stringify(message));
-        console.log('Message sent successfully');
-    } else {
-        console.error('Cannot send message - WebSocket not open. State:', signalingSocket?.readyState);
     }
 }
 
 // Handle signaling messages
 async function handleSignalingMessage(message) {
-    console.log('Received signaling message:', message.type);
-    
     switch (message.type) {
         case 'peer-joined':
             await handlePeerJoined();
@@ -203,10 +181,8 @@ async function handleSignalingMessage(message) {
 
 // Handle peer joined notification
 async function handlePeerJoined() {
-    console.log('🎉 Peer joined! Starting WebRTC connection...');
     if (isSender && !peerConnection) {
         await setupPeerConnection(true);
-        console.log('Sender: peer connection setup complete');
     }
 }
 
@@ -228,24 +204,18 @@ async function setupPeerConnection(createOffer) {
 
     // Connection state changes
     peerConnection.onconnectionstatechange = () => {
-        console.log('Connection state:', peerConnection.connectionState);
-        if (peerConnection.connectionState === 'connected') {
-            console.log('Peers connected!');
-        } else if (peerConnection.connectionState === 'failed') {
+        if (peerConnection.connectionState === 'failed') {
             showError('Connection failed. Please try again.');
         }
     };
 
     if (createOffer) {
         // Sender creates data channel
-        console.log('Creating data channel...');
         dataChannel = peerConnection.createDataChannel('fileTransfer');
         setupDataChannel();
 
-        console.log('Creating offer...');
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
-        console.log('Offer created, sending to peer...');
         sendSignalingMessage({ type: 'offer', offer });
     } else {
         // Receiver waits for data channel
@@ -261,8 +231,6 @@ function setupDataChannel() {
     dataChannel.binaryType = 'arraybuffer';
 
     dataChannel.onopen = () => {
-        console.log('Data channel open');
-        
         if (isSender) {
             // Send file metadata first
             const metadata = {
@@ -297,9 +265,7 @@ function setupDataChannel() {
         showError('Data channel error');
     };
 
-    dataChannel.onclose = () => {
-        console.log('Data channel closed');
-    };
+    dataChannel.onclose = () => {};
 }
 
 // Handle offer (receiver)
@@ -325,8 +291,6 @@ async function handleIceCandidate(candidate) {
     try {
         if (peerConnection && peerConnection.remoteDescription) {
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        } else {
-            console.log('Waiting for remote description before adding ICE candidate');
         }
     } catch (err) {
         console.error('Error adding ICE candidate:', err);
