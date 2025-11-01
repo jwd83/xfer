@@ -27,6 +27,15 @@ Deno.serve((req) => {
       }
       peers.get(id).add(socket);
       console.log(`Peer joined session: ${id}`);
+      
+      // Notify other peers that a new peer joined
+      const sessionPeers = peers.get(id);
+      const notification = JSON.stringify({ type: 'peer-joined' });
+      for (const peer of sessionPeers) {
+        if (peer !== socket && peer.readyState === WebSocket.OPEN) {
+          peer.send(notification);
+        }
+      }
     };
 
     socket.onmessage = (e) => {

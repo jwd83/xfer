@@ -1,11 +1,11 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v1
+// Version: 2025-11-01-v3
 // Configuration - update this with your Deno Deploy URL
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const STUN_SERVER = 'stun:stun.l.google.com:19302';
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
 
-console.log('P2P File Share - Version: 2025-11-01-v1');
+console.log('P2P File Share - Version: 2025-11-01-v3');
 console.log('Signaling Server:', SIGNALING_SERVER);
 
 // State
@@ -119,9 +119,8 @@ async function initSender() {
     try {
         console.log('initSender: starting');
         await connectSignaling();
-        console.log('initSender: signaling connected');
-        await setupPeerConnection(true);
-        console.log('initSender: peer connection setup complete');
+        console.log('initSender: signaling connected, waiting for receiver...');
+        // Don't create peer connection yet - wait for peer-joined event
     } catch (err) {
         console.error('initSender error:', err);
         showError(`Failed to initialize: ${err.message}`);
@@ -151,8 +150,14 @@ function connectSignaling() {
         };
 
         signalingSocket.onmessage = async (event) => {
-            const message = JSON.parse(event.data);
-            await handleSignalingMessage(message);
+            console.log('📨 RAW WebSocket message received:', event.data);
+            try {
+                const message = JSON.parse(event.data);
+                console.log('📨 PARSED message:', message);
+                await handleSignalingMessage(message);
+            } catch (err) {
+                console.error('❌ Failed to parse message:', err, 'Raw data:', event.data);
+            }
         };
 
         signalingSocket.onerror = (err) => {
@@ -181,6 +186,9 @@ async function handleSignalingMessage(message) {
     console.log('Received signaling message:', message.type);
     
     switch (message.type) {
+        case 'peer-joined':
+            await handlePeerJoined();
+            break;
         case 'offer':
             await handleOffer(message.offer);
             break;
@@ -190,6 +198,15 @@ async function handleSignalingMessage(message) {
         case 'ice-candidate':
             await handleIceCandidate(message.candidate);
             break;
+    }
+}
+
+// Handle peer joined notification
+async function handlePeerJoined() {
+    console.log('🎉 Peer joined! Starting WebRTC connection...');
+    if (isSender && !peerConnection) {
+        await setupPeerConnection(true);
+        console.log('Sender: peer connection setup complete');
     }
 }
 
