@@ -3,7 +3,7 @@ name: Deploy to Deno Deploy
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'deno/**'
       - '.github/workflows/deploy-deno.yml'
