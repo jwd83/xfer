@@ -109,14 +109,6 @@ function initSenderMode() {
             logger.warning('Keep this page open until transfer completes');
             statusBox.textContent = 'Waiting for receiver to connect...';
             
-            // Monitor connection (note: secure-file-transfer doesn't expose events)
-            // We'll log periodically
-            let waitTime = 0;
-            const connectionCheckInterval = setInterval(() => {
-                waitTime += 5;
-                logger.info(`Still waiting for receiver... (${waitTime}s)`);
-            }, 5000);
-            
             // Note: fileTransfer.offer() doesn't provide progress callbacks
             // The transfer happens when receiver calls download()
         } catch (error) {
