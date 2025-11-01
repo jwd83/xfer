@@ -1,5 +1,5 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v5
+// Version: 2025-11-01-v6
 // Configuration - update this with your Deno Deploy URL
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const ICE_SERVERS = [
@@ -213,17 +213,29 @@ async function setupPeerConnection(createOffer) {
     // ICE candidate handling
     peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
+            console.log('ICE candidate type:', event.candidate.type, '| Protocol:', event.candidate.protocol);
             sendSignalingMessage({
                 type: 'ice-candidate',
                 candidate: event.candidate
             });
+        } else {
+            console.log('ICE gathering complete');
         }
     };
 
     // Connection state changes
     peerConnection.onconnectionstatechange = () => {
+        console.log('Connection state:', peerConnection.connectionState);
         if (peerConnection.connectionState === 'failed') {
             showError('Connection failed. Please try again.');
+        }
+    };
+
+    // ICE connection state
+    peerConnection.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', peerConnection.iceConnectionState);
+        if (peerConnection.iceConnectionState === 'failed') {
+            console.error('ICE connection failed - likely NAT/firewall issue');
         }
     };
 
