@@ -1,24 +1,19 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v6
+// Version: 2025-11-01-v7
 // Configuration - update this with your Deno Deploy URL
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const ICE_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     {
-        urls: 'turn:openrelay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:443',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
+        urls: [
+            'turn:a.relay.metered.ca:80',
+            'turn:a.relay.metered.ca:80?transport=tcp',
+            'turn:a.relay.metered.ca:443',
+            'turn:a.relay.metered.ca:443?transport=tcp'
+        ],
+        username: 'e61c97e3d78df855d5d0c703',
+        credential: 'hZLLe2BUh9S7d/FP'
     }
 ];
 const CHUNK_SIZE = 16384; // 16KB chunks for data channel
