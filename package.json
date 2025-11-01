@@ -23,11 +23,14 @@
   "homepage": "https://github.com/jwd83/xfer#readme",
   "dependencies": {
     "buffer": "^6.0.3",
-    "secure-file-transfer": "^0.0.8"
+    "process": "^0.11.10",
+    "secure-file-transfer": "^0.0.8",
+    "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+    "rollup-plugin-node-polyfills": "^0.2.1",
     "vite": "^7.1.12"
   }
 }
