@@ -1,0 +1,29 @@
+name: Deploy to Deno Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'deno/**'
+      - '.github/workflows/deploy-deno.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Signaling Server
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: "your-project-name" # Replace with your Deno Deploy project name
+          entrypoint: "deno/server.js"
+          root: "."

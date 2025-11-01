@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P File Share</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 P2P File Share</h1>
+            <p class="tagline">Secure peer-to-peer file transfer. No uploads, no storage.</p>
+        </header>
+
+        <main>
+            <!-- Send Mode -->
+            <div id="send-mode" class="mode-panel">
+                <h2>Send a File</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="file-input" />
+                    <button id="select-file-btn" class="btn btn-primary">Choose File</button>
+                </div>
+                <div id="file-selected" class="file-info hidden">
+                    <p><strong>Selected:</strong> <span id="file-name"></span></p>
+                    <p><strong>Size:</strong> <span id="file-size"></span></p>
+                </div>
+                <div id="share-link-section" class="hidden">
+                    <p class="info-text">Share this link with your recipient:</p>
+                    <div class="link-display">
+                        <input type="text" id="share-link" readonly />
+                        <button id="copy-link-btn" class="btn btn-secondary">Copy</button>
+                    </div>
+                </div>
+                <div id="waiting-section" class="hidden">
+                    <p class="status-text">⏳ Waiting for recipient to connect...</p>
+                </div>
+            </div>
+
+            <!-- Receive Mode -->
+            <div id="receive-mode" class="mode-panel hidden">
+                <h2>Receive a File</h2>
+                <p class="status-text">🔗 Connecting to sender...</p>
+                <div id="receive-info" class="file-info hidden">
+                    <p><strong>File:</strong> <span id="receive-file-name"></span></p>
+                    <p><strong>Size:</strong> <span id="receive-file-size"></span></p>
+                </div>
+            </div>
+
+            <!-- Transfer Progress -->
+            <div id="transfer-section" class="hidden">
+                <h3 id="transfer-status">Transferring...</h3>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p class="progress-text">
+                    <span id="progress-percent">0%</span> · 
+                    <span id="progress-bytes">0 MB / 0 MB</span>
+                </p>
+            </div>
+
+            <!-- Complete -->
+            <div id="complete-section" class="hidden">
+                <h3>✅ Transfer Complete!</h3>
+                <button id="reset-btn" class="btn btn-primary">Send Another File</button>
+            </div>
+
+            <!-- Error -->
+            <div id="error-section" class="hidden">
+                <h3>❌ Connection Error</h3>
+                <p id="error-message"></p>
+                <button id="retry-btn" class="btn btn-secondary">Try Again</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Your files are transferred directly between browsers. No server storage.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
