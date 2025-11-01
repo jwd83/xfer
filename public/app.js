@@ -1,7 +1,7 @@
 // P2P File Share - WebRTC Client
-// Version: 2025-11-01-v10
+// Version: 2025-11-01-v11
 // Configuration - update this with your Deno Deploy URL
-const VERSION = '2025-11-01-v10';
+const VERSION = '2025-11-01-v11';
 const SIGNALING_SERVER = 'wss://xfer.jwd83.deno.net';
 const ICE_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -220,7 +220,10 @@ async function setupPeerConnection(createOffer) {
     // ICE candidate handling
     peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
-            console.log('ICE candidate type:', event.candidate.type, '| Protocol:', event.candidate.protocol);
+            console.log('ICE candidate type:', event.candidate.type, '| Protocol:', event.candidate.protocol, '| Address:', event.candidate.address || event.candidate.ip);
+            if (event.candidate.type === 'relay') {
+                console.log('✅ TURN RELAY WORKING!');
+            }
             sendSignalingMessage({
                 type: 'ice-candidate',
                 candidate: event.candidate
