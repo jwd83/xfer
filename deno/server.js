@@ -1,12 +1,18 @@
 // Deno Deploy-compatible WebSocket signaling relay for P2P file sharing
 // No file data passes through this server - only WebRTC signaling messages
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const peers = new Map(); // session_id -> Set of WebSockets
 
-serve((req) => {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
+Deno.serve((req) => {
+  const upgrade = req.headers.get("upgrade") || "";
+  
+  // Check if this is a WebSocket upgrade request
+  if (upgrade.toLowerCase() !== "websocket") {
+    return new Response("Expected WebSocket connection", { status: 426 });
+  }
+
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id");
 
   if (!id) {
     return new Response("Missing session ID parameter", { status: 400 });
