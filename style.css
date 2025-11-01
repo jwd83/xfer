@@ -253,6 +253,24 @@ input[type="file"] {
     margin-right: 8px;
 }
 
+.footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 0;
+    border-top: 1px solid #333;
+}
+
+.footer a {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer a:hover {
+    color: #4a9eff;
+}
+
 .hidden {
     display: none;
 }
